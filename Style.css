@@ -1,0 +1,744 @@
+/* =========================================================================
+   Sports Quiz — styles
+   -------------------------------------------------------------------------
+   1. Theme variables (one palette per sport)
+   2. Base layout
+   3. Home screen
+   4. Quiz screen (header, progress, question, answers)
+   5. Result screen
+   6. Small-screen tweaks
+   ========================================================================= */
+
+/* ---------- 1. Theme variables ---------- */
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --correct: #16a34a;
+  --correct-soft: #dcfce7;
+  --wrong: #dc2626;
+  --wrong-soft: #fee2e2;
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  /* Default accent (football green) — replaced per sport below */
+  --accent: #16a34a;
+  --accent-dark: #15803d;
+  --accent-soft: #dcfce7;
+  --accent-contrast: #ffffff;
+}
+
+/* Each sport sets its own accent trio. script.js puts the sport name on <body data-theme>. */
+body[data-theme="football"]   { --accent: #16a34a; --accent-dark: #15803d; --accent-soft: #dcfce7; }
+body[data-theme="basketball"] { --accent: #f97316; --accent-dark: #ea580c; --accent-soft: #ffedd5; }
+body[data-theme="badminton"]  { --accent: #2563eb; --accent-dark: #1d4ed8; --accent-soft: #dbeafe; }
+body[data-theme="cricket"]    { --accent: #dc2626; --accent-dark: #b91c1c; --accent-soft: #fee2e2; }
+
+/* ---------- 2. Base layout ---------- */
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  padding: clamp(16px, 4vw, 40px) 16px;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  /* Subtle accent glow so each sport feels different even on the background */
+  background:
+    radial-gradient(1200px 600px at 50% -10%, var(--accent-soft), transparent 70%),
+    var(--bg);
+  transition: background 0.35s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* Only one screen is visible at a time */
+.screen { display: none; }
+.screen.active {
+  display: block;
+  animation: fade-in 0.25s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+/* ---------- 3. Home screen ---------- */
+.title {
+  margin: 8px 0 6px;
+  font-size: clamp(2.1rem, 9vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-align: center;
+  color: var(--text);
+}
+
+.title::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 5px;
+  margin: 12px auto 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #16a34a, #f97316, #2563eb, #dc2626);
+}
+
+.subtitle {
+  margin: 0 auto 28px;
+  max-width: 34ch;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.sport-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+/* Each sport button is a big, tap-friendly card in that sport's color */
+.sport-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 20px 22px 18px;
+  min-height: 108px;
+  border-radius: var(--radius);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  overflow: hidden;
+}
+
+/* A soft highlight blob keeps the flat colors from looking dull */
+.sport-btn::after {
+  content: "";
+  position: absolute;
+  inset: auto -30px -60px auto;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+
+.sport-btn[data-sport="football"]   { background: linear-gradient(135deg, #22c55e, #15803d); }
+.sport-btn[data-sport="basketball"] { background: linear-gradient(135deg, #fb923c, #ea580c); }
+.sport-btn[data-sport="badminton"]  { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.sport-btn[data-sport="cricket"]    { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+.sport-btn:hover  { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(15, 23, 42, 0.22); }
+.sport-btn:active { transform: translateY(0) scale(0.99); filter: brightness(0.96); }
+.sport-btn:focus-visible { outline: 3px solid #0f172a; outline-offset: 3px; }
+
+.sport-emoji { font-size: 1.6rem; line-height: 1; margin-bottom: 6px; }
+.sport-name  { font-size: 1.28rem; font-weight: 700; letter-spacing: -0.01em; }
+.sport-high  { font-size: 0.85rem; opacity: 0.85; }
+
+/* ---------- 4. Quiz screen ---------- */
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.icon-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.icon-btn:hover { color: var(--text); }
+
+.counter {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+/* Countdown badge; turns red and pulses in the last 5 seconds */
+.timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.timer.urgent {
+  background: var(--wrong-soft);
+  color: var(--wrong);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  transition: width 0.3s ease;
+}
+
+.question-text {
+  margin: 0 0 20px;
+  font-size: clamp(1.15rem, 4.6vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+/* Answer option: lettered pill, large tap target */
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.answer-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.answer-btn:not(:disabled):active { transform: scale(0.995); }
+.answer-btn:focus-visible { outline: 3px solid var(--accent-dark); outline-offset: 2px; }
+.answer-btn:disabled { cursor: default; }
+
+.answer-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+/* Instant feedback states */
+.answer-btn.correct {
+  background: var(--correct-soft);
+  border-color: var(--correct);
+  color: #14532d;
+}
+
+.answer-btn.correct .answer-letter { background: var(--correct); color: #fff; }
+
+.answer-btn.wrong {
+  background: var(--wrong-soft);
+  border-color: var(--wrong);
+  color: #7f1d1d;
+}
+
+.answer-btn.wrong .answer-letter { background: var(--wrong); color: #fff; }
+
+/* ---------- 5. Result screen ---------- */
+#result-screen { text-align: center; }
+
+.result-heading {
+  margin: 10px 0 18px;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.score-badge {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  min-width: 150px;
+  padding: 22px 30px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 3px solid var(--accent);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  line-height: 1;
+}
+
+#score-value  { font-size: 3rem; color: var(--accent-dark); }
+.score-total  { font-size: 1.4rem; color: var(--muted); }
+
+.result-message {
+  margin: 20px 0 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.high-score-text {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.result-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.primary-btn,
+.secondary-btn {
+  min-height: 58px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: var(--accent-contrast);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+}
+
+.secondary-btn {
+  background: var(--card);
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.primary-btn:hover,
+.secondary-btn:hover { transform: translateY(-2px); }
+
+.primary-btn:active,
+.secondary-btn:active { transform: translateY(0) scale(0.99); filter: brightness(0.96); }
+
+.primary-btn:focus-visible,
+.secondary-btn:focus-visible { outline: 3px solid #0f172a; outline-offset: 3px; }
+
+/* ---------- 6. Responsive tweaks ---------- */
+@media (min-width: 520px) {
+  .sport-grid { grid-template-columns: 1fr 1fr; }
+  .sport-btn  { min-height: 132px; }
+  .result-actions { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- 7. NEW: player name card ---------- */
+.player-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.player-label { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+
+.player-input {
+  flex: 1 1 130px;
+  min-width: 0;
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: #f8fafc;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+}
+
+.player-input:focus { border-color: var(--accent); background: #fff; }
+
+.name-hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--wrong);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.name-hint[hidden] { display: none; }
+
+/* ---------- 8. NEW: leaderboard button on the home screen ---------- */
+.leaderboard-btn {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.leaderboard-btn:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+
+/* ---------- 9. NEW: leaderboard screen ---------- */
+.lb-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.lb-heading {
+  margin: 0;
+  font-size: clamp(1.35rem, 6vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lb-subtitle { margin: 0 0 18px; color: var(--muted); font-size: 0.92rem; }
+
+.lb-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.lb-tab {
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.lb-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.lb-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+/* Two-line row: rank | name + date | score */
+.lb-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-areas:
+    "rank name score"
+    "rank date score";
+  align-items: center;
+  column-gap: 10px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+}
+
+.lb-rank {
+  grid-area: rank;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.lb-name { grid-area: name; font-weight: 700; overflow-wrap: anywhere; }
+.lb-date { grid-area: date; font-size: 0.8rem; color: var(--muted); }
+.lb-score {
+  grid-area: score;
+  font-weight: 800;
+  color: var(--accent-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The current player's latest entry */
+.lb-row.is-you { border-color: var(--accent); background: var(--accent-soft); }
+
+.lb-you {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.lb-empty {
+  margin: 0 0 18px;
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+}
+
+.lb-empty[hidden] { display: none; }
+
+.clear-btn {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 2px solid var(--wrong-soft);
+  background: #fff;
+  color: var(--wrong);
+  font-weight: 700;
+}
+
+.clear-btn:hover { border-color: var(--wrong); }
+.clear-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- 10. NEW: confirmation popup ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.modal {
+  width: 100%;
+  max-width: 380px;
+  padding: 22px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.32);
+  animation: modal-in 0.18s ease;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 800; }
+.modal-text { margin: 0 0 18px; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.danger-btn {
+  min-height: 50px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--wrong);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.danger-btn:hover { filter: brightness(0.94); }
+
+/* ---------- 11. NEW: motivational note card under the answers ---------- */
+.note-card {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  /* Soft indigo — deliberately different from the green/red answer feedback */
+  background: #eef2ff;
+  border: 2px solid #c7d2fe;
+  color: #312e81;
+  box-shadow: 0 12px 26px rgba(49, 46, 129, 0.12);
+}
+
+.note-card[hidden] { display: none; }
+
+/* Gentle fade-in, restarted each time the card is shown */
+.note-card.is-visible { animation: note-fade-in 0.45s ease both; }
+
+@keyframes note-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.note-title {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6366f1;
+}
+
+.note-text { margin: 0 0 12px; font-size: 1.02rem; font-weight: 600; line-height: 1.45; }
+
+.note-answer {
+  display: inline-block;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #4338ca;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.note-next-btn {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 700;
+}
+
+.note-next-btn:disabled { opacity: 0.6; cursor: default; }
+.note-next-btn:not(:disabled):hover { filter: brightness(1.06); }
+
+/* NEW: confirmation and placement lines on the result screen */
+#high-score-text { margin: 0 0 6px; }
+.save-text { margin: 0 0 6px; color: var(--muted); font-size: 0.88rem; }
+
+/* NEW: top-10 placement for this round */
+.rank-text {
+  display: inline-block;
+  margin: 0 0 26px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Wider screens: four tabs in a row */
+@media (min-width: 520px) {
+  .lb-tabs { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* =========================================================================
+   12. WATERMARK
+   -------------------------------------------------------------------------
+   Fixed to the bottom-right corner (12px from each edge) on every screen,
+   in front of everything, at the same size on mobile and desktop.
+   Change the text in index.html (the <div id="watermark">), not here.
+   ========================================================================= */
+#watermark {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 9999;              /* stays above cards, screens and the popup */
+
+  /* Small, clean, slightly bold sans-serif */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+
+  color: #334155;
+  opacity: 0.5;               /* semi-transparent so it never distracts */
+  transition: opacity 0.3s ease; /* gentle fade, not a jump */
+
+  /* Soft two-way shadow: a light halo plus a faint dark drop, so the text
+     stays readable over pale, white and coloured backgrounds alike.
+     (If you ever add a dark theme, set color to #f8fafc and keep the shadow.) */
+  text-shadow:
+    0 0 3px rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(15, 23, 42, 0.25);
+
+  /* Never blocks a click or tap, and cannot be selected */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+/* NEW: while a quiz is running, script.js adds "is-quizzing" to <body>,
+   so the watermark steps back to 0.25 and never competes with the timer.
+   The class is removed again on the home, result and leaderboard screens. */
+body.is-quizzing #watermark { opacity: 0.25; }
