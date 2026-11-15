@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sports Quiz</title>
+  <!-- Only two files are needed besides this page: the styles and the quiz logic -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Everything lives inside .app so the layout stays centered and narrow on big screens -->
+  <main class="app">
+
+    <!-- ============================= HOME SCREEN ============================= -->
+    <section id="home-screen" class="screen active">
+      <h1 class="title">Sports Quiz</h1>
+      <p class="subtitle">Pick a sport and test your knowledge &mdash; 10 questions, 20 seconds each.</p>
+
+      <!-- NEW: player name. It is saved in the browser and reused next visit,
+           and can be edited at any time. A name is needed before playing. -->
+      <div class="player-card">
+        <label class="player-label" for="player-name">Your name</label>
+        <input
+          id="player-name"
+          class="player-input"
+          type="text"
+          maxlength="18"
+          placeholder="e.g. Alex"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p id="name-hint" class="name-hint" hidden>Pop your name in, then pick a sport to start.</p>
+      </div>
+
+      <!-- Each button carries its sport in data-sport; script.js reads it on click.
+           The high-score line inside each button is filled in by JavaScript. -->
+      <div class="sport-grid">
+        <button class="sport-btn" data-sport="football" type="button">
+          <span class="sport-emoji" aria-hidden="true">&#9917;</span>
+          <span class="sport-name">Football</span>
+          <span class="sport-high" data-high="football">High score: 0/10</span>
+        </button>
+
+        <button class="sport-btn" data-sport="basketball" type="button">
+          <span class="sport-emoji" aria-hidden="true">&#127936;</span>
+          <span class="sport-name">Basketball</span>
+          <span class="sport-high" data-high="basketball">High score: 0/10</span>
+        </button>
+
+        <button class="sport-btn" data-sport="badminton" type="button">
+          <span class="sport-emoji" aria-hidden="true">&#127992;</span>
+          <span class="sport-name">Badminton</span>
+          <span class="sport-high" data-high="badminton">High score: 0/10</span>
+        </button>
+
+        <button class="sport-btn" data-sport="cricket" type="button">
+          <span class="sport-emoji" aria-hidden="true">&#127951;</span>
+          <span class="sport-name">Cricket</span>
+          <span class="sport-high" data-high="cricket">High score: 0/10</span>
+        </button>
+      </div>
+
+      <!-- NEW: entry point to the per-sport leaderboards -->
+      <button id="leaderboard-btn" class="leaderboard-btn" type="button">
+        &#127942; Leaderboard
+      </button>
+    </section>
+
+    <!-- ============================= QUIZ SCREEN ============================= -->
+    <section id="quiz-screen" class="screen">
+      <!-- Top bar: leave button, question counter, seconds left -->
+      <header class="quiz-header">
+        <button id="quit-btn" class="icon-btn" type="button" aria-label="Back to home">&#8592; Home</button>
+        <span id="question-counter" class="counter">Question 1/10</span>
+        <span id="timer" class="timer" aria-live="off">20</span>
+      </header>
+
+      <!-- Progress bar is filled by script.js as questions are answered -->
+      <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+
+      <h2 id="question-text" class="question-text"></h2>
+
+      <!-- The four answer buttons are created by script.js -->
+      <div id="answers" class="answers"></div>
+
+      <!-- NEW: shown only after a wrong answer or a timeout. Holds a kind,
+           randomly chosen note plus the correct answer. Its Next button
+           stays locked for 3 seconds so the note can be read. -->
+      <div id="note-card" class="note-card" hidden aria-live="polite">
+        <p class="note-title">A little note from your coach</p>
+        <p id="note-text" class="note-text"></p>
+        <p id="note-answer" class="note-answer"></p>
+        <button id="note-next-btn" class="note-next-btn" type="button" disabled>Next in 3&hellip;</button>
+      </div>
+    </section>
+
+    <!-- ============================ RESULT SCREEN ============================ -->
+    <section id="result-screen" class="screen">
+      <h2 class="result-heading">Quiz complete</h2>
+
+      <!-- Big score badge, e.g. 8/10 -->
+      <div class="score-badge">
+        <span id="score-value">0</span><span class="score-total">/10</span>
+      </div>
+
+      <p id="result-message" class="result-message"></p>
+      <p id="high-score-text" class="high-score-text"></p>
+
+      <!-- NEW: confirms the round was added to this sport's leaderboard -->
+      <p id="save-text" class="save-text"></p>
+
+      <!-- NEW: where this round placed in the sport's top 10 -->
+      <p id="rank-text" class="rank-text"></p>
+
+      <div class="result-actions">
+        <button id="play-again-btn" class="primary-btn" type="button">Play Again</button>
+        <button id="home-btn" class="secondary-btn" type="button">Back to Home</button>
+      </div>
+    </section>
+
+    <!-- ===================== NEW: LEADERBOARD SCREEN ===================== -->
+    <section id="leaderboard-screen" class="screen">
+      <header class="lb-header">
+        <button id="lb-back-btn" class="icon-btn" type="button">&#8592; Home</button>
+        <h2 class="lb-heading">Leaderboard</h2>
+      </header>
+
+      <p class="lb-subtitle">Top 10 for each sport. Tied scores are ranked newest first.</p>
+
+      <!-- One tab per sport; script.js fills in the list for the active tab -->
+      <div class="lb-tabs" role="tablist" aria-label="Sport leaderboards">
+        <button class="lb-tab active" data-sport="football" type="button" role="tab">Football</button>
+        <button class="lb-tab" data-sport="basketball" type="button" role="tab">Basketball</button>
+        <button class="lb-tab" data-sport="badminton" type="button" role="tab">Badminton</button>
+        <button class="lb-tab" data-sport="cricket" type="button" role="tab">Cricket</button>
+      </div>
+
+      <ol id="lb-list" class="lb-list"></ol>
+      <p id="lb-empty" class="lb-empty" hidden>No scores for this sport yet &mdash; be the first! &#127941;</p>
+
+      <button id="clear-lb-btn" class="clear-btn" type="button">Clear Leaderboard</button>
+    </section>
+
+    <!-- NEW: confirmation popup shown before the leaderboard is cleared -->
+    <div id="confirm-modal" class="modal-overlay" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+        <h3 id="confirm-title" class="modal-title">Clear leaderboard?</h3>
+        <p id="confirm-text" class="modal-text"></p>
+        <div class="modal-actions">
+          <button id="confirm-cancel" class="secondary-btn" type="button">Cancel</button>
+          <button id="confirm-ok" class="danger-btn" type="button">Yes, clear</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===================================================================
+       WATERMARK
+       Only this one line needs editing to change the name shown.
+       Its styles live in style.css, section 12 ("WATERMARK").
+       It sits outside <main>, so it stays visible on every screen.
+       =================================================================== -->
+  <div id="watermark">Abhinibesh-fresher</div>
+
+  <script src="script.js"></script>
+</body>
+          </html>
